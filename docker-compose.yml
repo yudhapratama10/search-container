@@ -2,9 +2,8 @@ version: '3'
 services: 
     postgres:
         image: 'postgres'
-        # volumes: for mock data later
-        #   - ./Docker/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-        #   - ./Docker/extension.sql:/docker-entrypoint-initdb.d/extension.sql
+        volumes:
+          - ./docker/schema.sql:/docker-entrypoint-initdb.d/schema.sql
         environment: 
           - POSTGRES_USER=postgres
           - POSTGRES_PASSWORD=postgres
