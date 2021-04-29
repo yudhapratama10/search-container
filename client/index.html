@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+        integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+    <title>Workshop Search Mini Client App</title>
+</head>
+
+<body class="m-5">
+    <div class="container" id="container">
+
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- Popper.js first, then Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"
+        integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous">
+    </script>
+    <!-- Load React. -->
+    <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+
+    <!-- Load our React component. -->
+    <script type="text/babel">
+        'use strict';
+
+        const e = React.createElement;
+
+        function Component() {
+            // const urlParams = new URLSearchParams(window.location.search);
+            // const email = urlParams.get('email');
+            // const code = urlParams.get('code');
+
+            // React.useEffect(() => {
+            //     Swal.fire({
+            //         title: 'Input kata sandi baru',
+            //         text: 'Kata sandi harus lebih dari 6 karakter.',
+            //         input: 'password',
+            //         allowOutsideClick: false,
+            //         allowEscapeKey: false,
+            //         inputAttributes: {
+            //             autocapitalize: 'off',
+            //             autocorrect: 'off'
+            //         },
+            //         inputValidator: (value) => {
+            //             return new Promise((resolve) => {
+            //                 if (email == null || code == null || email == "" || code == "") {
+            //                     resolve('Data gagal terupdate. Pastikan telah menggunakan link terakhir yang dikirim dan belum pernah berhasil melakukan melakukan pergantian password sebelumnya.')
+            //                 }else if (!(value.length > 6)) {
+            //                     resolve('Kata sandi harus lebih dari 6 karakter.')
+            //                 }else {
+            //                     resolve('')
+            //                 }
+            //             })
+            //         },
+            //         confirmButtonText: 'Submit',
+            //         showLoaderOnConfirm: true,
+            //         preConfirm: (newPassword) => {
+            //             let data = {
+            //                     'email': email,
+            //                     'code': code,
+            //                     'new_password': newPassword
+            //                 }
+            //             return fetch(`/resetpassword`, {
+            //                 method:"POST",
+            //                 body: JSON.stringify(data),
+            //                 })
+            //             .then(response => {
+            //                 return response.json()
+            //             })
+            //             .catch(error => {
+            //                 Swal.showValidationMessage('Gagal mengupdate kata sandi. Silahkan coba lagi.')
+            //             })
+            //         },
+            //         }).then(({value}) => {
+            //             if (value.status_code == 200) {
+            //                 Swal.fire({
+            //                     text: `${value.data.message}`,
+            //                     type: 'success'
+            //                 })
+            //             } else {
+            //                 Swal.fire({
+            //                     text: `${value.error_message}`,
+            //                     type: 'warning',
+            //                 })
+            //             }
+
+            //         })
+            //     },[]);
+
+            const [formData, setFormData] = React.useState({name:"", price:0})
+
+            const onNameChange = ({target}) => {
+                const {value} = target
+                setFormData({...formData, name:value})
+            }
+
+            const onPriceChange = ({target}) => {
+                const {value} = target
+                setFormData({...formData, price:value})
+            }
+
+            const handleSubmit = () => {
+                console.log(formData)
+                alert(formData.name + formData.price)
+            }
+
+            return (
+                <div>
+                    <form>
+                        <h1>Input Product</h1>
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Product Name</label>
+                            <input type="text" class="form-control" placeholder="Enter product name" onChange={onNameChange}/>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1">Price</label>
+                            <input type="number" class="form-control" onChange={onPriceChange}/>
+                        </div>
+                        <br/>
+                        <button type="button" class="btn btn-primary" onClick={handleSubmit}>Submit</button>
+                    </form>
+                </div>
+            );
+        }
+
+        const domContainer = document.querySelector('#container');
+        ReactDOM.render(e(Component), domContainer);
+
+
+    </script>
+
+
+</body>
+
+</html>
