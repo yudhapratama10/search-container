@@ -40,66 +40,7 @@
         const e = React.createElement;
 
         function Component() {
-            // const urlParams = new URLSearchParams(window.location.search);
-            // const email = urlParams.get('email');
-            // const code = urlParams.get('code');
-
-            // React.useEffect(() => {
-            //     Swal.fire({
-            //         title: 'Input kata sandi baru',
-            //         text: 'Kata sandi harus lebih dari 6 karakter.',
-            //         input: 'password',
-            //         allowOutsideClick: false,
-            //         allowEscapeKey: false,
-            //         inputAttributes: {
-            //             autocapitalize: 'off',
-            //             autocorrect: 'off'
-            //         },
-            //         inputValidator: (value) => {
-            //             return new Promise((resolve) => {
-            //                 if (email == null || code == null || email == "" || code == "") {
-            //                     resolve('Data gagal terupdate. Pastikan telah menggunakan link terakhir yang dikirim dan belum pernah berhasil melakukan melakukan pergantian password sebelumnya.')
-            //                 }else if (!(value.length > 6)) {
-            //                     resolve('Kata sandi harus lebih dari 6 karakter.')
-            //                 }else {
-            //                     resolve('')
-            //                 }
-            //             })
-            //         },
-            //         confirmButtonText: 'Submit',
-            //         showLoaderOnConfirm: true,
-            //         preConfirm: (newPassword) => {
-            //             let data = {
-            //                     'email': email,
-            //                     'code': code,
-            //                     'new_password': newPassword
-            //                 }
-            //             return fetch(`/resetpassword`, {
-            //                 method:"POST",
-            //                 body: JSON.stringify(data),
-            //                 })
-            //             .then(response => {
-            //                 return response.json()
-            //             })
-            //             .catch(error => {
-            //                 Swal.showValidationMessage('Gagal mengupdate kata sandi. Silahkan coba lagi.')
-            //             })
-            //         },
-            //         }).then(({value}) => {
-            //             if (value.status_code == 200) {
-            //                 Swal.fire({
-            //                     text: `${value.data.message}`,
-            //                     type: 'success'
-            //                 })
-            //             } else {
-            //                 Swal.fire({
-            //                     text: `${value.error_message}`,
-            //                     type: 'warning',
-            //                 })
-            //             }
-
-            //         })
-            //     },[]);
+            const btnRef = React.useRef();
 
             const [formData, setFormData] = React.useState({name:"", price:0})
 
@@ -114,8 +55,26 @@
             }
 
             const handleSubmit = () => {
-                console.log(formData)
-                alert(formData.name + formData.price)
+                btnRef.current.setAttribute("disabled", "disabled");
+                if(formData.name == "" || formData.price == "0") {
+                    Swal.fire("Warning", "All fields cannot be empty!", "warning")
+                    btnRef.current.removeAttribute("disabled", "disabled");
+                    return
+                }
+                const data = new FormData()
+                data.append("name", formData.name)
+                data.append("price", formData.price)
+
+                axios.post('/insert', data)
+                .then(({data}) => {
+                    const {message} = data
+                    setFormData({name:"", price:"0"})
+                    Swal.fire("Message",message, "")
+                }), (error) => {
+                    console.log(error)
+                }
+                btnRef.current.removeAttribute("disabled", "disabled");
+
             }
 
             return (
@@ -123,15 +82,15 @@
                     <form>
                         <h1>Input Product</h1>
                         <div class="form-group">
-                            <label for="exampleInputEmail1">Product Name</label>
-                            <input type="text" class="form-control" placeholder="Enter product name" onChange={onNameChange}/>
+                            <label>Product Name</label>
+                            <input type="text" class="form-control" value={formData.name} placeholder="Enter product name" onChange={onNameChange}/>
                         </div>
                         <div class="form-group">
-                            <label for="exampleInputPassword1">Price</label>
-                            <input type="number" class="form-control" onChange={onPriceChange}/>
+                            <label>Price</label>
+                            <input type="number" class="form-control" value={formData.price} onChange={onPriceChange}/>
                         </div>
                         <br/>
-                        <button type="button" class="btn btn-primary" onClick={handleSubmit}>Submit</button>
+                        <button ref={btnRef} type="button" class="btn btn-primary" onClick={handleSubmit}>Insert</button>
                     </form>
                 </div>
             );
@@ -139,7 +98,6 @@
 
         const domContainer = document.querySelector('#container');
         ReactDOM.render(e(Component), domContainer);
-
 
     </script>
 
