@@ -43,7 +43,7 @@
             const btnRef = React.useRef();
 
             const [formData, setFormData] = React.useState({name:"", price:0})
-
+            const [product, setProduct] = React.useState([])
             const onNameChange = ({target}) => {
                 const {value} = target
                 setFormData({...formData, name:value})
@@ -52,6 +52,19 @@
             const onPriceChange = ({target}) => {
                 const {value} = target
                 setFormData({...formData, price:value})
+            }
+
+            React.useEffect(() => {
+                fetch()
+            },[]);
+
+            const fetch = () => {
+                axios.get('/get')
+                .then(({data}) => {
+                    setProduct(data)
+                }), (error) => {
+                    console.log(error)
+                }
             }
 
             const handleSubmit = () => {
@@ -70,11 +83,72 @@
                     const {message} = data
                     setFormData({name:"", price:"0"})
                     Swal.fire("Message",message, "")
+                    fetch()
                 }), (error) => {
                     console.log(error)
                 }
                 btnRef.current.removeAttribute("disabled", "disabled");
 
+            }
+
+            const handleUpdate = (element) => {
+                const {id,name,price} = element
+                let priceString = price.toString()
+                Swal.fire({
+                    title: "Update Product",
+                    confirmButtonText:"Update",
+                    html: `
+                        <label>Product Name</label>
+                        <input id="swal-name" type="text" class="form-control" value=${name} placeholder="Enter product name"/>
+                        <br>
+                        <label>Price</label>
+                        <input id="swal-price" type="number" class="form-control" value=${priceString} min="0"/>
+                    `,
+                    preConfirm: () => {
+                        let swalName = document.getElementById("swal-name").value
+                        let swalPrice = document.getElementById("swal-price").value
+
+                        if (swalName == name && swalPrice == price) {
+                            return Swal.fire("Message","No data changed","")
+                        }
+
+                        const data = new FormData()
+                        data.append("name", swalName)
+                        data.append("price", swalPrice)
+                        data.append("id",id)
+                        return axios.post('/update', data)
+                        .then(({data}) => {
+                            const {message} = data
+                            Swal.fire("Message",message, "")
+                            fetch()
+                        }), (error) => {
+                            console.log(error)
+                        }
+                    }
+                })
+            }
+
+            const handleDelete = (element) => {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!',
+                    preConfirm: () => {
+                        const data = new FormData()
+                        data.append("id",element.id)
+                        return axios.post('/delete', data)
+                        .then(({data}) => {
+                            const {message} = data
+                            Swal.fire("Message",message, "")
+                            fetch()
+                        }), (error) => {
+                            console.log(error)
+                        }
+                    }
+                    })
             }
 
             return (
@@ -87,11 +161,45 @@
                         </div>
                         <div class="form-group">
                             <label>Price</label>
-                            <input type="number" class="form-control" value={formData.price} onChange={onPriceChange}/>
+                            <input type="number" class="form-control" value={formData.price} onChange={onPriceChange} min="0"/>
                         </div>
                         <br/>
                         <button ref={btnRef} type="button" class="btn btn-primary" onClick={handleSubmit}>Insert</button>
                     </form>
+
+                    <br/>
+
+                    {product.length > 0 ?
+                        <div>
+                            <h4>Sample 5 Data</h4>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Price</th>
+                                        <th>Action</th> 
+                                    </tr>                               
+                                </thead>
+                                <tbody>
+                                    {product.map(element => {
+                                            return <tr>
+                                                <td>{element.id}</td>
+                                                <td>{element.name}</td>
+                                                <td>{element.price}</td>
+                                                <td>
+
+                                                    <button class="btn btn-primary mr-1" onClick ={handleUpdate.bind(handleUpdate, element)} >Update</button>
+                                                    <button class="btn btn-primary mr-1" onClick={handleDelete.bind(handleDelete,element)}>Delete</button>   
+                                                </td>
+                                            </tr>
+                                        })}    
+                                </tbody>
+                            </table>    
+                        </div>
+                        :
+                        null
+                    }
                 </div>
             );
         }

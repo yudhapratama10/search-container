@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -135,7 +134,7 @@ func delete(w http.ResponseWriter, r *http.Request) {
 
 	if err == nil {
 		p.publishMessage("delete")
-		res.Message = "Success to Update"
+		res.Message = "Success to Delete"
 	}
 	json.NewEncoder(w).Encode(res)
 }
@@ -156,12 +155,11 @@ type product struct {
 }
 
 func (ps *products) get() {
-	res, _ := dbCon.Query("SELECT id, name, price FROM products")
+	res, _ := dbCon.Query("SELECT id, name, price FROM products ORDER BY id desc LIMIT 5")
 
 	for res.Next() {
 		product := product{}
 		if err := res.Scan(&product.ID, &product.Name, &product.Price); err == nil {
-			fmt.Println(product)
 			*ps = append(*ps, product)
 		}
 	}
