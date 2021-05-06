@@ -1,0 +1,15 @@
+version: '3'
+services:
+    nsqlookupd:
+        image: nsqio/nsq:latest
+        command: ["./nsqlookupd"]
+        ports: 
+            - "4160:4160"
+            - "4161:4161"
+        networks:
+            search-net:
+
+networks:
+    search-net:
+        driver: bridge
+        external: true
