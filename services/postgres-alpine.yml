@@ -1,7 +1,7 @@
 version: '3'
 services:
     postgres:
-        image: postgres:alpine
+        image: postgres
         ports: 
             - "5432:5432"
         environment:
@@ -11,5 +11,4 @@ services:
 
 networks:
     search-net:
-        driver: bridge
         external: true

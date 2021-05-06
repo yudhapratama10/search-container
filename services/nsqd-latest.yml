@@ -2,7 +2,7 @@ version: '3'
 services:
     nsqd:
         image: nsqio/nsq:latest
-        command: ["./nsqd", "-broadcast-address", "localhost", "-lookupd-tcp-address", "nsqlookupd:4160"]
+        command: ["./nsqd", "-broadcast-address", "nsqd", "-lookupd-tcp-address", "nsqlookupd:4160"]
         ports: 
             - "4150:4150"
             - "4151:4151"
@@ -11,5 +11,4 @@ services:
 
 networks:
     search-net:
-        driver: bridge
         external: true

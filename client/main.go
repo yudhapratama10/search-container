@@ -25,7 +25,7 @@ func main() {
 	defer producer.Stop()
 	c := conSetting{
 		nsqAddr:     "127.0.0.1:4150",
-		pgConString: "postgres://postgres:postgres@localhost/workshop?sslmode=disable",
+		pgConString: "postgres://postgres:postgres@localhost?sslmode=disable",
 	}
 
 	c.connectDB()
@@ -155,7 +155,7 @@ type product struct {
 }
 
 func (ps *products) get() {
-	res, _ := dbCon.Query("SELECT id, name, price FROM products ORDER BY id desc LIMIT 5")
+	res, _ := dbCon.Query("SELECT id, name, price FROM product ORDER BY id desc LIMIT 5")
 
 	for res.Next() {
 		product := product{}
@@ -166,18 +166,18 @@ func (ps *products) get() {
 }
 
 func (p *product) delete() error {
-	_, err := dbCon.Exec("DELETE FROM products where id = $1", p.ID)
+	_, err := dbCon.Exec("DELETE FROM product where id = $1", p.ID)
 	return err
 }
 
 func (p *product) update() error {
-	_, err := dbCon.Exec("UPDATE products set name = $1, price = $2 WHERE id = $3", p.Name, p.Price, p.ID)
+	_, err := dbCon.Exec("UPDATE product set name = $1, price = $2 WHERE id = $3", p.Name, p.Price, p.ID)
 	return err
 }
 
 func (p *product) insert() error {
 	var lastInsertID int
-	err := dbCon.QueryRow("INSERT INTO products(name,price) values ($1,$2) RETURNING id", p.Name, p.Price).Scan(&lastInsertID)
+	err := dbCon.QueryRow("INSERT INTO product(name,price) values ($1,$2) RETURNING id", p.Name, p.Price).Scan(&lastInsertID)
 	p.ID = lastInsertID
 	return err
 }
@@ -196,7 +196,7 @@ func (p *product) publishMessage(action string) {
 	if err != nil {
 		log.Println(err)
 	}
-	err = producer.Publish("product", payload)
+	err = producer.Publish("product_index", payload)
 	if err != nil {
 		log.Println(err)
 	}
