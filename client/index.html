@@ -42,18 +42,38 @@
         function Component() {
             const btnRef = React.useRef();
 
-            const [formData, setFormData] = React.useState({name:"", price:0})
+            const [formData, setFormData] = React.useState({name:"", ingredients:"",isHalal:false,isVegetarian:false,description:"",rating:"1"})
             const [product, setProduct] = React.useState([])
-            const onNameChange = ({target}) => {
+            const ontxtNameChange = ({target}) => {
                 const {value} = target
                 setFormData({...formData, name:value})
             }
 
-            const onPriceChange = ({target}) => {
+            const ontxtIngredientsChange = ({target}) => {
                 const {value} = target
-                setFormData({...formData, price:value})
+                setFormData({...formData, ingredients:value})
             }
 
+            const oncbxHalalChange = ({target}) => {
+                const {checked} = target
+                setFormData({...formData, isHalal:checked})
+            }
+
+            const oncbxVegetarianChange = ({target}) => {
+                const {checked} = target
+                setFormData({...formData, isVegetarian:checked})
+            }
+
+            const ontxtDescriptionChange = ({target}) => {
+                const {value} = target
+                setFormData({...formData, description:value})
+            }
+
+            const ontxtRatingChange = ({target}) => {
+                const {value} = target
+                setFormData({...formData, rating:value})
+            }
+        
             React.useEffect(() => {
                 fetch()
             },[]);
@@ -76,12 +96,17 @@
                 }
                 const data = new FormData()
                 data.append("name", formData.name)
-                data.append("price", formData.price)
+                data.append("ingredients", formData.ingredients)
+                data.append("isHalal", formData.isHalal)
+                data.append("isVegetarian", formData.isVegetarian)
+                data.append("description", formData.description)
+                data.append("rating", formData.rating)
+
 
                 axios.post('/insert', data)
                 .then(({data}) => {
                     const {message} = data
-                    setFormData({name:"", price:"0"})
+                    setFormData({name:"", ingredients:"",isHalal:false,isVegetarian:false,description:"",rating:"1"})
                     Swal.fire("Message",message, "")
                     fetch()
                 }), (error) => {
@@ -92,29 +117,64 @@
             }
 
             const handleUpdate = (element) => {
-                const {id,name,price} = element
-                let priceString = price.toString()
+                const {id,name,ingredients, isHalal, isVegetarian, description, rating} = element
+
+                let halalChecked = isHalal ? 'checked' : ''
+                let vegetarianChecked = isVegetarian ? 'checked' : ''
+
                 Swal.fire({
-                    title: "Update Product",
+                    title: "Update Recipes",
                     confirmButtonText:"Update",
                     html: `
-                        <label>Product Name</label>
-                        <input id="swal-name" type="text" class="form-control" value=${name} placeholder="Enter product name"/>
-                        <br>
-                        <label>Price</label>
-                        <input id="swal-price" type="number" class="form-control" value=${priceString} min="0"/>
+                    <div class="mb-3 form-group">
+                            <label>Recipe Name</label>
+                            <input id="swal-name" type="text" class="form-control" value=${name} placeholder="Enter recipe name">
+                        </div>
+                        <div class="mb-3 form-group">
+                            <label>Ingredients (comma seperated)</label>
+                            <input id="swal-ingredients" type="text" class="form-control" value=${ingredients} placeholder="Enter ingredients">
+                        </div>
+                        <div class="mb-3 form-check form-check-inline">
+                            <input id="swal-isHalal" class="form-check-input" type="checkbox" ${halalChecked}>
+                            <label class="form-check-label">Halal</label>
+                        </div>
+                        <div class="mb-3 form-check form-check-inline">
+                            <input id="swal-isVegetarian" class="form-check-input" type="checkbox" ${vegetarianChecked}>
+                            <label class="form-check-label">Vegetarian</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea id="swal-description" class="form-control" rows="3" value=${description}>${description}</textarea>
+                        </div>
+                        <div class="mb-3 form-group">
+                            <label>Rating</label>
+                            <input id="swal-rating" type="number" class="form-control" value=${rating} placeholder="Enter rating" min="1" max="5">
+                        </div>
                     `,
                     preConfirm: () => {
                         let swalName = document.getElementById("swal-name").value
-                        let swalPrice = document.getElementById("swal-price").value
+                        let swalIngredients = document.getElementById("swal-ingredients").value
+                        let swalIsHalal = document.getElementById("swal-isHalal").checked
+                        let swalIsVegetarian = document.getElementById("swal-isVegetarian").checked
+                        let swalDescription = document.getElementById("swal-description").value
+                        let swalRating = document.getElementById("swal-rating").value
 
-                        if (swalName == name && swalPrice == price) {
+                        if (swalName == name && 
+                                swalIngredients == ingredients &&
+                                swalIsHalal == isHalal &&
+                                swalIsVegetarian == isVegetarian &&
+                                swalDescription == description &&
+                                swalRating == rating) {
                             return Swal.fire("Message","No data changed","")
                         }
 
                         const data = new FormData()
                         data.append("name", swalName)
-                        data.append("price", swalPrice)
+                        data.append("ingredients", swalIngredients)
+                        data.append("isHalal", swalIsHalal)
+                        data.append("isVegetarian", swalIsVegetarian)
+                        data.append("description", swalDescription)
+                        data.append("rating", swalRating)
                         data.append("id",id)
                         return axios.post('/update', data)
                         .then(({data}) => {
@@ -154,17 +214,34 @@
             return (
                 <div>
                     <form>
-                        <h1>Input Product</h1>
-                        <div class="form-group">
-                            <label>Product Name</label>
-                            <input type="text" class="form-control" value={formData.name} placeholder="Enter product name" onChange={onNameChange}/>
+                        <h1>Input Recipe</h1>
+                        <div class="mb-3 form-group">
+                            <label>Recipe Name</label>
+                            <input type="text" class="form-control" value={formData.name} placeholder="Enter recipe name" onChange={ontxtNameChange}/>
                         </div>
-                        <div class="form-group">
-                            <label>Price</label>
-                            <input type="number" class="form-control" value={formData.price} onChange={onPriceChange} min="0"/>
+                        <div class="mb-3 form-group">
+                            <label>Ingredients (comma seperated)</label>
+                            <input type="text" class="form-control" value={formData.ingredients} placeholder="Enter ingredients" onChange={ontxtIngredientsChange}/>
                         </div>
-                        <br/>
-                        <button ref={btnRef} type="button" class="btn btn-primary" onClick={handleSubmit}>Insert</button>
+                        <div class="mb-3 form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" checked={formData.isHalal} onChange={oncbxHalalChange}/>
+                            <label class="form-check-label">Halal</label>
+                        </div>
+                        <div class="mb-3 form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" checked={formData.isVegetarian} onChange={oncbxVegetarianChange}/>
+                            <label class="form-check-label">Vegetarian</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" rows="3" value={formData.description} onChange={ontxtDescriptionChange}></textarea>
+                        </div>
+                        <div class="mb-3 form-group">
+                            <label>Rating</label>
+                            <input type="number" class="form-control" value={formData.rating} placeholder="Enter rating" min="1" max="5" onChange={ontxtRatingChange}/>
+                        </div>
+                        <div class="mb-3">
+                            <button ref={btnRef} type="button" class="btn btn-primary" onClick={handleSubmit}>Insert</button>                            
+                        </div>
                     </form>
 
                     <br/>
@@ -177,7 +254,11 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Name</th>
-                                        <th>Price</th>
+                                        <th>Ingredients</th>
+                                        <th>Halal</th>
+                                        <th>Vegetarian</th>
+                                        <th>Description</th>
+                                        <th>Rating</th>
                                         <th>Action</th> 
                                     </tr>                               
                                 </thead>
@@ -186,7 +267,18 @@
                                             return <tr>
                                                 <td>{element.id}</td>
                                                 <td>{element.name}</td>
-                                                <td>{element.price}</td>
+                                                <td>
+                                                    <ul>
+                                                    {element.ingredients.map(val => {
+                                                        return <li>{val}</li>
+                                                    })}
+                                                    </ul>
+                                                </td>
+                                                <td>{element.isHalal.toString()}</td>
+                                                <td>{element.isVegetarian.toString()}</td>
+                                                <td>{element.description}</td>
+                                                <td>{element.rating}</td>
+
                                                 <td>
 
                                                     <button class="btn btn-primary mr-1" onClick ={handleUpdate.bind(handleUpdate, element)} >Update</button>

@@ -3,11 +3,14 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 
 	"github.com/nsqio/go-nsq"
@@ -74,12 +77,24 @@ func insert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := r.FormValue("name")
-	price := r.FormValue("price")
+	ingredients := r.FormValue("ingredients")
+	isHalal := r.FormValue("isHalal")
+	isVegetarian := r.FormValue("isVegetarian")
+	description := r.FormValue("description")
+	rating := r.FormValue("rating")
 
-	priceInt, _ := strconv.Atoi(price)
-	p := product{
-		Name:  name,
-		Price: priceInt,
+	splitIngredients := strings.Split(ingredients, ",")
+	isHalalBool, _ := strconv.ParseBool(isHalal)
+	isVegetarianBool, _ := strconv.ParseBool(isVegetarian)
+	ratingInt, _ := strconv.Atoi(rating)
+
+	p := recipe{
+		Name:         name,
+		Ingredients:  splitIngredients,
+		IsHalal:      isHalalBool,
+		IsVegetarian: isVegetarianBool,
+		Description:  description,
+		Rating:       ratingInt,
 	}
 
 	err := p.insert()
@@ -87,7 +102,10 @@ func insert(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		p.publishMessage("insert")
 		res.Message = "Success to Insert"
+	} else {
+		fmt.Println(err)
 	}
+
 	json.NewEncoder(w).Encode(res)
 }
 
@@ -97,16 +115,28 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := r.FormValue("id")
+
 	name := r.FormValue("name")
-	price := r.FormValue("price")
+	ingredients := r.FormValue("ingredients")
+	isHalal := r.FormValue("isHalal")
+	isVegetarian := r.FormValue("isVegetarian")
+	description := r.FormValue("description")
+	rating := r.FormValue("rating")
 
-	priceInt, _ := strconv.Atoi(price)
-	IDInt, _ := strconv.Atoi(id)
+	splitIngredients := strings.Split(ingredients, ",")
+	isHalalBool, _ := strconv.ParseBool(isHalal)
+	isVegetarianBool, _ := strconv.ParseBool(isVegetarian)
+	idInt, _ := strconv.Atoi(id)
+	ratingInt, _ := strconv.Atoi(rating)
 
-	p := product{
-		ID:    IDInt,
-		Name:  name,
-		Price: priceInt,
+	p := recipe{
+		ID:           idInt,
+		Name:         name,
+		Ingredients:  splitIngredients,
+		IsHalal:      isHalalBool,
+		IsVegetarian: isVegetarianBool,
+		Description:  description,
+		Rating:       ratingInt,
 	}
 
 	err := p.update()
@@ -114,6 +144,8 @@ func update(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		p.publishMessage("update")
 		res.Message = "Success to Update"
+	} else {
+		fmt.Println(err)
 	}
 	json.NewEncoder(w).Encode(res)
 }
@@ -124,10 +156,10 @@ func delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := r.FormValue("id")
-	IDInt, _ := strconv.Atoi(id)
+	idInt, _ := strconv.Atoi(id)
 
-	p := product{
-		ID: IDInt,
+	p := recipe{
+		ID: idInt,
 	}
 
 	err := p.delete()
@@ -139,45 +171,58 @@ func delete(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-type products []product
+type recipes []recipe
 
 func get(w http.ResponseWriter, r *http.Request) {
-	products := products{}
-	products.get()
-	json.NewEncoder(w).Encode(products)
+	recipes := recipes{}
+	recipes.get()
+	json.NewEncoder(w).Encode(recipes)
 
 }
 
-type product struct {
-	ID    int    `json:"id,omitempty"`
-	Name  string `json:"name,omitempty"`
-	Price int    `json:"price,omitempty"`
+type recipe struct {
+	ID           int      `json:"id,omitempty"`
+	Name         string   `json:"name,omitempty"`
+	Ingredients  []string `json:"ingredients,omitempty"`
+	IsHalal      bool     `json:"isHalal"`
+	IsVegetarian bool     `json:"isVegetarian"`
+	Description  string   `json:"description,omitempty"`
+	Rating       int      `json:"rating"`
 }
 
-func (ps *products) get() {
-	res, _ := dbCon.Query("SELECT id, name, price FROM product ORDER BY id desc LIMIT 5")
-
+func (ps *recipes) get() {
+	res, _ := dbCon.Query(`
+	SELECT id, name, ingredients, isHalal, isVegetarian, description, rating
+	FROM recipes 
+	ORDER BY id desc LIMIT 5`)
 	for res.Next() {
-		product := product{}
-		if err := res.Scan(&product.ID, &product.Name, &product.Price); err == nil {
+		product := recipe{}
+		if err := res.Scan(&product.ID, &product.Name, pq.Array(&product.Ingredients),
+			&product.IsHalal, &product.IsVegetarian, &product.Description, &product.Rating); err == nil {
 			*ps = append(*ps, product)
+		} else {
+			fmt.Println(err)
 		}
 	}
 }
 
-func (p *product) delete() error {
-	_, err := dbCon.Exec("DELETE FROM product where id = $1", p.ID)
+func (p *recipe) delete() error {
+	_, err := dbCon.Exec("DELETE FROM recipes where id = $1", p.ID)
 	return err
 }
 
-func (p *product) update() error {
-	_, err := dbCon.Exec("UPDATE product set name = $1, price = $2 WHERE id = $3", p.Name, p.Price, p.ID)
+func (p *recipe) update() error {
+	_, err := dbCon.Exec(`UPDATE recipes 
+	set name = $1, ingredients = $2, isHalal = $3, isVegetarian = $4, description = $5, rating = $6
+	WHERE id = $7`, p.Name, pq.Array(p.Ingredients), p.IsHalal, p.IsVegetarian, p.Description, p.Rating, p.ID)
 	return err
 }
 
-func (p *product) insert() error {
+func (p *recipe) insert() error {
 	var lastInsertID int
-	err := dbCon.QueryRow("INSERT INTO product(name,price) values ($1,$2) RETURNING id", p.Name, p.Price).Scan(&lastInsertID)
+	err := dbCon.QueryRow(`INSERT INTO recipes(name,ingredients,isHalal,isVegetarian,description,rating) 
+	values ($1,$2,$3,$4,$5,$6) 
+	RETURNING id`, p.Name, pq.Array(p.Ingredients), p.IsHalal, p.IsVegetarian, p.Description, p.Rating).Scan(&lastInsertID)
 	p.ID = lastInsertID
 	return err
 }
@@ -187,7 +232,7 @@ type message struct {
 	Action string `json:"action,omitempty"`
 }
 
-func (p *product) publishMessage(action string) {
+func (p *recipe) publishMessage(action string) {
 	msg := message{
 		ID:     p.ID,
 		Action: action,
@@ -196,7 +241,7 @@ func (p *product) publishMessage(action string) {
 	if err != nil {
 		log.Println(err)
 	}
-	err = producer.Publish("product_index", payload)
+	err = producer.Publish("recipes", payload)
 	if err != nil {
 		log.Println(err)
 	}

@@ -52,7 +52,7 @@ for ARG in "$@"; do
         SUCCESS=1
         ;;
     pg|postgres)
-        run_docker postgres postgres-alpine.yml
+        run_docker postgres postgres.yml
         SUCCESS=1
         ;;
     stop)
