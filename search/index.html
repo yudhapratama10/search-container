@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Font Awesome -->
+    <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+    rel="stylesheet"
+    />
+    <!-- Google Fonts -->
+    <link
+    href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+    rel="stylesheet"
+    />
+    <!-- MDB -->
+    <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.3.0/mdb.min.css"
+    rel="stylesheet"
+    />
+    <title>Workshop Search Mini Search App</title>
+</head>
+
+<body class="m-5">
+    <div class="container" id="container">
+
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- Popper.js first, then Bootstrap JS -->
+<!-- MDB -->
+    <script
+    type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.3.0/mdb.min.js"
+    ></script>
+    <!-- Load React. -->
+    <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+
+    <!-- Load our React component. -->
+    <script type="text/babel">
+        'use strict';
+
+        const e = React.createElement;
+
+        function Component() {
+            return (
+                <div>
+                    <div class="input-group">
+                        <div class="input-group rounded col-lg-8">
+                        <input type="search" class="form-control rounded" placeholder="Search" aria-label="Search"
+                            aria-describedby="search-addon" />
+                        <span class="input-group-text border-0" id="search-addon">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        </div>
+                    </div>
+                    <label class="mt-2">Filter Aggregation</label>
+                    <div class="input-group m-2">
+                        <div class="mb-3 form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox"/>
+                            <label class="form-check-label">Halal</label>
+                        </div>
+                        <div class="mb-3 form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox"/>
+                            <label class="form-check-label">Vegetarian</label>
+                        </div>
+                    </div>
+
+                    <div class="input-group m-2">
+                        <div class="mb-3 form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox"/>
+                            <label class="form-check-label">Halal</label>
+                        </div>
+                        <div class="mb-3 form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox"/>
+                            <label class="form-check-label">Vegetarian</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="card w-25 p-2">
+                            <img src="https://via.placeholder.com/300" class="card-img-top"/>
+                            <div class="card-body">
+                                <div>
+                                    <span class="badge bg-primary">Halal</span>
+                                    <span class="badge bg-primary">Vegetarian</span>          
+                                </div>
+
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                <div>
+                                    <span class="badge bg-primary">Halal</span>
+                                    <span class="badge bg-primary">Vegetarian</span>          
+                                </div>
+                                <span>
+                                    <i class="fas fa-star"> 5</i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card w-25 p-2">
+                            <img src="https://via.placeholder.com/300" class="card-img-top"/>
+                            <div class="card-body">
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>
+                        <div class="card w-25 p-2">
+                            <img src="https://via.placeholder.com/300" class="card-img-top"/>
+                            <div class="card-body">
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>
+                        <div class="card w-25 p-2">
+                            <img src="https://via.placeholder.com/300" class="card-img-top"/>
+                            <div class="card-body">
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>
+
+                        <nav class="mt-3">
+                            <ul class="pagination">
+                                <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                                </li>
+                                <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item active" aria-current="page">
+                                <a class="page-link" href="#">2 <span class="visually-hidden">(current)</span></a>
+                                </li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+
+                </div>
+
+            );
+        }
+
+        const domContainer = document.querySelector('#container');
+        ReactDOM.render(e(Component), domContainer);
+
+    </script>
+
+
+</body>
+
+</html>
