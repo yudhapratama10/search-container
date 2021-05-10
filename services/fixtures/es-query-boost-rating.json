@@ -1,0 +1,13 @@
+{
+    "query": {
+        "match": {
+            "name": {
+                "query": "ridr",
+                "fuzziness": "2"
+            }
+        }
+    },
+    "sort": {
+        "rating": "desc"
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "query": {
+        "bool": {
+            "filter": {
+                "term": {
+                    "is_vegetarian": false
+                }
+            }
+        }
+    }
+}

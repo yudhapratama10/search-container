@@ -1,0 +1,24 @@
+{
+    "mappings": {
+        "properties": {
+            "name": {
+                "type": "text"
+            },
+            "ingredients": {
+                "type": "text"
+            },
+            "is_halal": {
+                "type": "boolean"
+            },
+            "is_vegetarian": {
+                "type": "boolean"
+            },
+            "description": {
+                "type": "text"
+            },
+            "rating": {
+                "type": "double"
+            }
+        }
+    }
+}

@@ -46,7 +46,6 @@ for ARG in "$@"; do
         SUCCESS=1
         ;;
     nsq)
-        run_docker nsqlookupd nsqlookupd-latest.yml
         run_docker nsqd nsqd-latest.yml
         run_docker nsqadmin nsqadmin-latest.yml
         SUCCESS=1
@@ -58,10 +57,9 @@ for ARG in "$@"; do
     stop)
         echo "Stopping containers..."
         stop_docker elastic elastic-7.yml
-        stop_docker nsqlookupd nsqlookupd-latest.yml
         stop_docker nsqd nsqd-latest.yml
         stop_docker nsqadmin nsqadmin-latest.yml
-        stop_docker postgres postgres-alpine.yml
+        stop_docker postgres postgres.yml
         echo "Stopping network"
         stop_docker_network
         SUCCESS=1

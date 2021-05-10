@@ -3,7 +3,7 @@ services:
     postgres:
         image: postgres
         volumes:
-          - ./fixtures/product.sql:/docker-entrypoint-initdb.d/product.sql
+          - ./fixtures/recipes.sql:/docker-entrypoint-initdb.d/recipes.sql
         ports: 
             - "5432:5432"
         environment:
