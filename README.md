@@ -14,9 +14,13 @@ External services which are needed for current project. Consists of docker-compo
 
 Sample fixtures
 
-  - Run ES index with `$ curl -XPUT "localhost:9200/product?pretty" -H 'Content-Type: application/json' --data-binary "@services/fixtures/product.json"`
+  - Run ES index with `$ curl -XPUT "localhost:9200/recipes?pretty" -H 'Content-Type: application/json' --data-binary "@services/fixtures/recipes.json"`
 
-  - Run DB records with `$ psql -f services/fixtures/product.sql postgres://postgres@localhost:5432`
+  - Run DB records with `$ psql -f services/fixtures/recipes.sql postgres://postgres@localhost:5432`
+
+Sample ES queries
+
+  - Run query with `$ curl -XGET "localhost:9200/recipes/_search?pretty" -H 'Content-Type: application/json' --data-binary "@services/fixtures/{es-query}"`
 
 ## `tools`
 

@@ -14,40 +14,44 @@ import (
 
 func main() {
 
-	consumer, err := nsq.NewConsumer("product_index", "search_service", nsq.NewConfig())
+	// Create new NSQ consumer, for consuming new message
+	consumer, err := nsq.NewConsumer("recipes_index", "search_service", nsq.NewConfig())
 	if err != nil {
 		panic(err)
 	}
 
+	// Adds a handler, basically what we want to do everytime we consume a message
 	consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
 
-		var product struct {
+		// Parse message body into a struct
+		var recipe struct {
 			ID int `json:"id"`
 		}
-		if err := json.Unmarshal(message.Body, &product); err != nil {
+		if err := json.Unmarshal(message.Body, &recipe); err != nil {
 			message.Finish()
 			return nil // invalid message are dropped for simplicity
-		} else if product.ID == 0 {
+		} else if recipe.ID == 0 {
 			message.Finish()
 			return nil
 		}
 
+		// Construct an HTTP request using the struct data
 		req, _ := http.NewRequest(
 			http.MethodPut,
-			fmt.Sprintf("http://localhost:9200/product/_doc/%d?pretty", product.ID),
+			fmt.Sprintf("http://localhost:9200/recipes/_doc/%d?pretty", recipe.ID),
 			bytes.NewBuffer(message.Body),
 		)
 		req.Header.Add("Content-Type", "application/json")
 
+		// Index (insert) the data to Elasticsearch via PUT request
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return err
 		}
 		defer res.Body.Close()
 
-		// Message are passed to ES succesfully, sending FIN command
-		message.Finish()
-
+		// Might be optional: see if Elasticsearch returns any error responses.
+		// If there's any, just log the response
 		var response struct {
 			Error struct {
 				RootCause []struct {
@@ -60,7 +64,6 @@ func main() {
 			fmt.Println("NSQ-ES consumer error: Decode:", err)
 			return nil
 		}
-
 		if len(response.Error.RootCause) != 0 {
 			fmt.Println("NSQ-ES consumer error: Request:")
 			for _, err := range response.Error.RootCause {
@@ -71,13 +74,13 @@ func main() {
 		return nil
 	}))
 
-	if err := consumer.ConnectToNSQLookupd("http://localhost:4161"); err != nil {
+	// Using current consumer & handler, connect to a producer
+	if err := consumer.ConnectToNSQD("localhost:4150"); err != nil {
 		panic(err)
 	}
 
+	// Resiliency: graceful handling, stop the consumer on SIGINT
 	go func(consumer *nsq.Consumer) {
-
-		// Graceful handling
 		{
 			c := make(chan os.Signal, 1)
 			signal.Notify(c, os.Interrupt)
@@ -89,7 +92,6 @@ func main() {
 				}
 			}()
 		}
-
 	}(consumer)
 
 	<-consumer.StopChan

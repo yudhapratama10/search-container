@@ -10,11 +10,12 @@ import (
 	"net/http"
 	"os"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 func main() {
 
+	// Connect to database
 	dbConn, err := sql.Open("postgres", "postgres://postgres@localhost:5432/?sslmode=disable")
 	if err != nil {
 		panic(err)
@@ -22,28 +23,55 @@ func main() {
 		panic(err)
 	}
 
-	rows, err := dbConn.QueryContext(context.Background(), "SELECT id, name, price FROM product")
+	// Do SQL query to get the data
+	rows, err := dbConn.QueryContext(context.Background(), `
+	SELECT
+		id,
+		name,
+		ingredients,
+		isHalal,
+		isVegetarian,
+		description,
+		rating
+	FROM
+		recipes`)
 	if err != nil {
 		panic(err)
 	}
 
-	type product struct {
-		ID    int    `json:"-"` // ID on ES are mapped into HTTP URL instead of body
-		Name  string `json:"name"`
-		Price int    `json:"price"`
+	// Define data schema
+	type recipe struct {
+		ID           int      `json:"-"` // ID on ES are mapped into HTTP URL instead of body
+		Name         string   `json:"name"`
+		Ingredients  []string `json:"ingredients"`
+		IsHalal      bool     `json:"is_halal"`
+		IsVegetarian bool     `json:"is_vegetarian"`
+		Description  string   `json:"description"`
+		Rating       float64  `json:"rating"`
 	}
-	var products []product
 
+	// Using the result from query, map it to the schema
+	var recipes []recipe
 	for rows.Next() {
-		var product product
-		if err := rows.Scan(&product.ID, &product.Name, &product.Price); err != nil {
+		var recipe recipe
+		if err := rows.Scan(
+			&recipe.ID,
+			&recipe.Name,
+			pq.Array(&recipe.Ingredients),
+			&recipe.IsHalal,
+			&recipe.IsVegetarian,
+			&recipe.Description,
+			&recipe.Rating,
+		); err != nil {
 			panic(err)
 		}
-		products = append(products, product)
+		recipes = append(recipes, recipe)
 	}
+	rows.Close()
 
+	// Parse the data into HTTP request body bytes
 	body := bytes.NewBuffer(nil)
-	for _, product := range products {
+	for _, recipe := range recipes {
 
 		// Elastic bulk insert uses head-tail (for index) format.
 		// Ex:
@@ -61,8 +89,8 @@ func main() {
 				ID    int    `json:"_id"`
 			} `json:"index"`
 		}
-		bulkHead.Index.Index = "product"
-		bulkHead.Index.ID = product.ID
+		bulkHead.Index.Index = "recipes"
+		bulkHead.Index.ID = recipe.ID
 
 		{
 			// Head
@@ -72,7 +100,7 @@ func main() {
 		}
 		{
 			// Tail
-			b, _ := json.Marshal(product)
+			b, _ := json.Marshal(recipe)
 			body.Write(b)
 			body.WriteByte('\n')
 		}
@@ -80,6 +108,7 @@ func main() {
 	req, _ := http.NewRequest(http.MethodPost, "http://localhost:9200/_bulk?pretty", body)
 	req.Header.Add("Content-Type", "application/json")
 
+	// With that HTTP request, POST the data into Elasticsearch (index/insert data)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		panic(err)
