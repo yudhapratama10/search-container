@@ -1,4 +1,4 @@
-module github.com/tokopedia/workshopsearch/client
+module github.com/tokopedia/workshopsearch/background
 
 go 1.16
 

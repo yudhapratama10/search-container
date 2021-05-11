@@ -86,7 +86,7 @@ func insert(w http.ResponseWriter, r *http.Request) {
 	splitIngredients := strings.Split(ingredients, ",")
 	isHalalBool, _ := strconv.ParseBool(isHalal)
 	isVegetarianBool, _ := strconv.ParseBool(isVegetarian)
-	ratingInt, _ := strconv.Atoi(rating)
+	ratingFloat, _ := strconv.ParseFloat(rating, 64)
 
 	p := recipe{
 		Name:         name,
@@ -94,7 +94,7 @@ func insert(w http.ResponseWriter, r *http.Request) {
 		IsHalal:      isHalalBool,
 		IsVegetarian: isVegetarianBool,
 		Description:  description,
-		Rating:       ratingInt,
+		Rating:       ratingFloat,
 	}
 
 	err := p.insert()
@@ -127,7 +127,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	isHalalBool, _ := strconv.ParseBool(isHalal)
 	isVegetarianBool, _ := strconv.ParseBool(isVegetarian)
 	idInt, _ := strconv.Atoi(id)
-	ratingInt, _ := strconv.Atoi(rating)
+	ratingFloat, _ := strconv.ParseFloat(rating, 64)
 
 	p := recipe{
 		ID:           idInt,
@@ -136,7 +136,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 		IsHalal:      isHalalBool,
 		IsVegetarian: isVegetarianBool,
 		Description:  description,
-		Rating:       ratingInt,
+		Rating:       ratingFloat,
 	}
 
 	err := p.update()
@@ -187,7 +187,7 @@ type recipe struct {
 	IsHalal      bool     `json:"isHalal"`
 	IsVegetarian bool     `json:"isVegetarian"`
 	Description  string   `json:"description,omitempty"`
-	Rating       int      `json:"rating"`
+	Rating       float64  `json:"rating"`
 }
 
 func (ps *recipes) get() {

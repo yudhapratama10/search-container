@@ -1,24 +1,36 @@
 {
     "mappings": {
-        "properties": {
-            "name": {
-                "type": "text"
-            },
-            "ingredients": {
-                "type": "text"
-            },
-            "is_halal": {
-                "type": "boolean"
-            },
-            "is_vegetarian": {
-                "type": "boolean"
-            },
-            "description": {
-                "type": "text"
-            },
-            "rating": {
-                "type": "double"
+      "properties": {
+        "name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
             }
+          }
+        },
+        "ingredients": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "is_halal": {
+          "type": "boolean"
+        },
+        "is_vegetarian": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "text"
+        },
+        "rating": {
+          "type": "double"
         }
+      }
     }
-}
+  }
