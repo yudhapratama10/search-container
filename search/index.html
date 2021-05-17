@@ -188,7 +188,6 @@
                             <a class="page-link">Previous</a>
                             </li>
                             {Array.from({length: totalPage}, (x, i) => {
-                                let className = formData.page == i + 1 ? 'page-item active' : 'page-item'
                                 return <li class={formData.page == i + 1 ? 'page-item active' : 'page-item'} onClick={() => {onChangePage(i + 1)}}>
                                         <a class="page-link">{i + 1}</a>
                                     </li>
