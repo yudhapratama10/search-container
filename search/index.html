@@ -56,11 +56,6 @@
         const [formData, setFormData] = React.useState({"q":"","page":1,"ingredients":[],"isHalal":false,"isVegetarian":false})
         const [totalPage, setTotalPage] = React.useState(0)
 
-
-        const onClickSearch = ()=> {            
-            fetch()
-        }
-
         const fetch = (page) => {
 
             let ingredients = formData.ingredients.join()
