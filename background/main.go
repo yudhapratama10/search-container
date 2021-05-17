@@ -65,16 +65,20 @@ func consumer() {
 			Rating       float64  `json:"rating"`
 		}
 
-		// Get detailed data from SQL/database
-		dbConn, err := sql.Open("postgres", "postgres://postgres@localhost:5432/?sslmode=disable")
-		if err != nil {
-			fmt.Println("NSQ-ES consumer error: Database:", err)
-			return nil
-		} else if err := dbConn.Ping(); err != nil {
-			fmt.Println("NSQ-ES consumer error: Database:", err)
-			return nil
-		}
-		if err := dbConn.QueryRowContext(context.Background(), `
+		// Construct an HTTP request using the struct data
+		var req *http.Request
+		if message.Action == "insert" || message.Action == "update" {
+
+			// Get detailed data from SQL/database
+			dbConn, err := sql.Open("postgres", "postgres://postgres@localhost:5432/?sslmode=disable")
+			if err != nil {
+				fmt.Println("NSQ-ES consumer error: Database:", err)
+				return nil
+			} else if err := dbConn.Ping(); err != nil {
+				fmt.Println("NSQ-ES consumer error: Database:", err)
+				return nil
+			}
+			if err := dbConn.QueryRowContext(context.Background(), `
 		SELECT
 			name,
 			ingredients,
@@ -87,20 +91,17 @@ func consumer() {
 		WHERE
 			id = $1
 		`, message.ID).Scan(
-			&recipe.Name,
-			pq.Array(&recipe.Ingredients),
-			&recipe.IsHalal,
-			&recipe.IsVegetarian,
-			&recipe.Description,
-			&recipe.Rating,
-		); err != nil {
-			fmt.Println("NSQ-ES consumer error: Database:", err, "ID:", message.ID)
-			return nil
-		}
+				&recipe.Name,
+				pq.Array(&recipe.Ingredients),
+				&recipe.IsHalal,
+				&recipe.IsVegetarian,
+				&recipe.Description,
+				&recipe.Rating,
+			); err != nil {
+				fmt.Println("NSQ-ES consumer error: Database:", err, "ID:", message.ID)
+				return nil
+			}
 
-		// Construct an HTTP request using the struct data
-		var req *http.Request
-		if message.Action == "insert" || message.Action == "update" {
 			marshal, _ := json.Marshal(recipe)
 			req, _ = http.NewRequest(
 				http.MethodPut,
