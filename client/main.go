@@ -57,13 +57,6 @@ func (c conSetting) connectDB() {
 }
 
 func (c conSetting) createProducer() {
-	var err error
-	config := nsq.NewConfig()
-	producer, err = nsq.NewProducer(c.nsqAddr, config)
-
-	if err != nil {
-		log.Fatal(err)
-	}
 
 }
 
@@ -100,7 +93,6 @@ func insert(w http.ResponseWriter, r *http.Request) {
 	err := p.insert()
 
 	if err == nil {
-		p.publishMessage("insert")
 		res.Message = "Success to Insert"
 	} else {
 		fmt.Println(err)
@@ -142,7 +134,6 @@ func update(w http.ResponseWriter, r *http.Request) {
 	err := p.update()
 
 	if err == nil {
-		p.publishMessage("update")
 		res.Message = "Success to Update"
 	} else {
 		fmt.Println(err)
@@ -165,7 +156,6 @@ func delete(w http.ResponseWriter, r *http.Request) {
 	err := p.delete()
 
 	if err == nil {
-		p.publishMessage("delete")
 		res.Message = "Success to Delete"
 	}
 	json.NewEncoder(w).Encode(res)
@@ -233,16 +223,5 @@ type message struct {
 }
 
 func (p *recipe) publishMessage(action string) {
-	msg := message{
-		ID:     p.ID,
-		Action: action,
-	}
-	payload, err := json.Marshal(msg)
-	if err != nil {
-		log.Println(err)
-	}
-	err = producer.Publish("recipes", payload)
-	if err != nil {
-		log.Println(err)
-	}
+
 }

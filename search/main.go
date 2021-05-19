@@ -1,14 +1,15 @@
 package main
 
 import (
-	"bytes"
-	"context"
+	// "bytes"
+	// "context"
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
+
+	// "strings"
 	"text/template"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v7"
@@ -70,34 +71,6 @@ type searchRequest struct {
 func (s searchRequest) filterQuery() []map[string]interface{} {
 
 	filter := make([]map[string]interface{}, 0)
-	if s.Ingredients != "" {
-		splitIngredients := strings.Split(s.Ingredients, ",")
-
-		filterTermsIngredients := map[string]interface{}{
-			"terms": map[string]interface{}{
-				"ingredients": splitIngredients,
-			},
-		}
-		filter = append(filter, filterTermsIngredients)
-	}
-
-	if s.isHalal {
-		filterExistHalal := map[string]interface{}{
-			"exists": map[string]interface{}{
-				"field": "is_halal",
-			},
-		}
-		filter = append(filter, filterExistHalal)
-	}
-
-	if s.isVegetarian {
-		filterExistVegetarian := map[string]interface{}{
-			"exists": map[string]interface{}{
-				"field": "is_vegetarian",
-			},
-		}
-		filter = append(filter, filterExistVegetarian)
-	}
 
 	if len(filter) == 0 {
 		return nil
@@ -107,131 +80,7 @@ func (s searchRequest) filterQuery() []map[string]interface{} {
 }
 
 func (s searchRequest) search() searchResponse {
-	var r map[string]interface{}
-	var buf bytes.Buffer
-	size := 4
-	from := s.Page*size - size
-
-	query := map[string]interface{}{
-		"from": from,
-		"size": size,
-		"query": map[string]interface{}{
-			"function_score": map[string]interface{}{
-				"query": map[string]interface{}{
-					"bool": map[string]interface{}{
-						"must": map[string]interface{}{
-							"match": map[string]interface{}{
-								"name": map[string]interface{}{
-									"query":     s.Keyword,
-									"fuzziness": "AUTO",
-								},
-							},
-						},
-						"filter": s.filterQuery(),
-					},
-				},
-				"functions": []map[string]interface{}{
-					{
-						"filter": map[string]interface{}{
-							"range": map[string]interface{}{
-								"rating": map[string]interface{}{
-									"gt": 4,
-								},
-							},
-						},
-						"weight": 10,
-					},
-				},
-			},
-		},
-		"aggs": map[string]interface{}{
-			"ingredients": map[string]interface{}{
-				"terms": map[string]interface{}{
-					"field": "ingredients.keyword",
-				},
-			},
-		},
-	}
-
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		log.Fatalf("Error encoding query: %s", err)
-	}
-
-	fmt.Println("query: ", &buf)
-
-	res, err := elasticClient.Search(
-		elasticClient.Search.WithContext(context.Background()),
-		elasticClient.Search.WithIndex("recipes"),
-		elasticClient.Search.WithBody(&buf),
-		elasticClient.Search.WithTrackTotalHits(true),
-	)
-
-	if err != nil {
-		log.Fatalf("Error getting response: %s", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			log.Fatalf("Error parsing the response body: %s", err)
-		} else {
-			// Print the response status and error information.
-			log.Fatalf("[%s] %s: %s",
-				res.Status(),
-				e["error"].(map[string]interface{})["type"],
-				e["error"].(map[string]interface{})["reason"],
-			)
-		}
-	}
-
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		log.Fatalf("Error parsing the response body: %s", err)
-	}
-	// Print the response status, number of results, and request duration.
-	log.Printf(
-		"[%s] %d hits; took: %dms",
-		res.Status(),
-		int(r["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
-		int(r["took"].(float64)),
-	)
-
-	// process data
-	recipes := make([]recipe, 0)
-
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-
-		source := hit.(map[string]interface{})["_source"]
-
-		recipes = append(recipes, recipe{
-			ID:           hit.(map[string]interface{})["_id"].(string),
-			Name:         source.(map[string]interface{})["name"].(string),
-			Ingredients:  arrInterfaceToArrString(source.(map[string]interface{})["ingredients"].([]interface{})),
-			IsHalal:      interfaceToBool(source.(map[string]interface{})["is_halal"]),
-			IsVegetarian: interfaceToBool(source.(map[string]interface{})["is_vegetarian"]),
-			Description:  source.(map[string]interface{})["description"].(string),
-			Rating:       source.(map[string]interface{})["rating"].(float64),
-		})
-	}
-
-	buckets := make([]bucket, 0)
-
-	for _, ingredientsBucket := range r["aggregations"].(map[string]interface{})["ingredients"].(map[string]interface{})["buckets"].([]interface{}) {
-		buckets = append(buckets, bucket{
-			Key:      ingredientsBucket.(map[string]interface{})["key"].(string),
-			DocCount: int(ingredientsBucket.(map[string]interface{})["doc_count"].(float64)),
-		})
-	}
-
-	log.Println(strings.Repeat("=", 37))
-
-	return searchResponse{
-		Recipes:   recipes,
-		TotalData: int(r["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
-		Filter: filter{
-			IngredientBucket: buckets,
-		},
-	}
+	return searchResponse{}
 }
 
 func interfaceToBool(in interface{}) (out bool) {
