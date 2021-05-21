@@ -69,7 +69,10 @@ type searchRequest struct {
 
 func (s searchRequest) filterQuery() []map[string]interface{} {
 
+	// create the filter query variable
 	filter := make([]map[string]interface{}, 0)
+
+	// check if there is ingredients filter or no
 	if s.Ingredients != "" {
 		splitIngredients := strings.Split(s.Ingredients, ",")
 
@@ -81,6 +84,7 @@ func (s searchRequest) filterQuery() []map[string]interface{} {
 		filter = append(filter, filterTermsIngredients)
 	}
 
+	// check if there is halal filter or no
 	if s.isHalal {
 		filterExistHalal := map[string]interface{}{
 			"exists": map[string]interface{}{
@@ -90,6 +94,7 @@ func (s searchRequest) filterQuery() []map[string]interface{} {
 		filter = append(filter, filterExistHalal)
 	}
 
+	// check if there is vegetarian filter or no
 	if s.isVegetarian {
 		filterExistVegetarian := map[string]interface{}{
 			"exists": map[string]interface{}{
@@ -99,6 +104,7 @@ func (s searchRequest) filterQuery() []map[string]interface{} {
 		filter = append(filter, filterExistVegetarian)
 	}
 
+	// if there is no filter, just return nil
 	if len(filter) == 0 {
 		return nil
 	}
@@ -107,11 +113,14 @@ func (s searchRequest) filterQuery() []map[string]interface{} {
 }
 
 func (s searchRequest) search() searchResponse {
-	var r map[string]interface{}
+	var responses map[string]interface{}
 	var buf bytes.Buffer
+
+	// per page is 4
 	size := 4
 	from := s.Page*size - size
 
+	// create the query
 	query := map[string]interface{}{
 		"from": from,
 		"size": size,
@@ -122,8 +131,7 @@ func (s searchRequest) search() searchResponse {
 						"must": map[string]interface{}{
 							"match": map[string]interface{}{
 								"name": map[string]interface{}{
-									"query":     s.Keyword,
-									"fuzziness": "AUTO",
+									"query": s.Keyword,
 								},
 							},
 						},
@@ -159,6 +167,7 @@ func (s searchRequest) search() searchResponse {
 
 	fmt.Println("query: ", &buf)
 
+	// do http call to elasticsearch
 	res, err := elasticClient.Search(
 		elasticClient.Search.WithContext(context.Background()),
 		elasticClient.Search.WithIndex("recipes"),
@@ -171,6 +180,7 @@ func (s searchRequest) search() searchResponse {
 	}
 	defer res.Body.Close()
 
+	// check if there is error or no
 	if res.IsError() {
 		var e map[string]interface{}
 		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
@@ -185,21 +195,21 @@ func (s searchRequest) search() searchResponse {
 		}
 	}
 
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&responses); err != nil {
 		log.Fatalf("Error parsing the response body: %s", err)
 	}
 	// Print the response status, number of results, and request duration.
 	log.Printf(
 		"[%s] %d hits; took: %dms",
 		res.Status(),
-		int(r["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
-		int(r["took"].(float64)),
+		int(responses["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
+		int(responses["took"].(float64)),
 	)
 
-	// process data
+	// process the data
 	recipes := make([]recipe, 0)
 
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
+	for _, hit := range responses["hits"].(map[string]interface{})["hits"].([]interface{}) {
 
 		source := hit.(map[string]interface{})["_source"]
 
@@ -216,7 +226,7 @@ func (s searchRequest) search() searchResponse {
 
 	buckets := make([]bucket, 0)
 
-	for _, ingredientsBucket := range r["aggregations"].(map[string]interface{})["ingredients"].(map[string]interface{})["buckets"].([]interface{}) {
+	for _, ingredientsBucket := range responses["aggregations"].(map[string]interface{})["ingredients"].(map[string]interface{})["buckets"].([]interface{}) {
 		buckets = append(buckets, bucket{
 			Key:      ingredientsBucket.(map[string]interface{})["key"].(string),
 			DocCount: int(ingredientsBucket.(map[string]interface{})["doc_count"].(float64)),
@@ -227,27 +237,11 @@ func (s searchRequest) search() searchResponse {
 
 	return searchResponse{
 		Recipes:   recipes,
-		TotalData: int(r["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
+		TotalData: int(responses["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
 		Filter: filter{
 			IngredientBucket: buckets,
 		},
 	}
-}
-
-func interfaceToBool(in interface{}) (out bool) {
-	if in == nil {
-		return false
-	}
-
-	return true
-}
-
-func arrInterfaceToArrString(in []interface{}) (out []string) {
-	for _, v := range in {
-		out = append(out, v.(string))
-	}
-
-	return out
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -275,4 +269,20 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(request.search())
 
+}
+
+func interfaceToBool(in interface{}) (out bool) {
+	if in == nil {
+		return false
+	}
+
+	return true
+}
+
+func arrInterfaceToArrString(in []interface{}) (out []string) {
+	for _, v := range in {
+		out = append(out, v.(string))
+	}
+
+	return out
 }
