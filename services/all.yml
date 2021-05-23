@@ -23,6 +23,11 @@ services:
         ports: 
             - "4150:4150"
             - "4151:4151"
+    nsqadmin:
+        image: nsqio/nsq:latest
+        command: ["./nsqadmin", "-nsqd-http-address", "nsqd:4151"]
+        ports: 
+            - "4171:4171"
     postgres:
         image: postgres
         volumes:
