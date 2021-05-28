@@ -70,8 +70,10 @@ type searchRequest struct {
 
 func (s searchRequest) filterQuery() []map[string]interface{} {
 
+	// create the filter query variable
 	filter := make([]map[string]interface{}, 0)
 
+	// if there is no filter, just return nil
 	if len(filter) == 0 {
 		return nil
 	}
@@ -81,22 +83,6 @@ func (s searchRequest) filterQuery() []map[string]interface{} {
 
 func (s searchRequest) search() searchResponse {
 	return searchResponse{}
-}
-
-func interfaceToBool(in interface{}) (out bool) {
-	if in == nil {
-		return false
-	}
-
-	return true
-}
-
-func arrInterfaceToArrString(in []interface{}) (out []string) {
-	for _, v := range in {
-		out = append(out, v.(string))
-	}
-
-	return out
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -124,4 +110,20 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(request.search())
 
+}
+
+func interfaceToBool(in interface{}) (out bool) {
+	if in == nil {
+		return false
+	}
+
+	return true
+}
+
+func arrInterfaceToArrString(in []interface{}) (out []string) {
+	for _, v := range in {
+		out = append(out, v.(string))
+	}
+
+	return out
 }

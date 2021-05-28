@@ -1,0 +1,156 @@
+GET /_cluster/health
+
+PUT /recipes
+{
+  "mappings": {
+    "properties": {
+      "name": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "ingredients": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "is_halal": {
+        "type": "boolean"
+      },
+      "is_vegetarian": {
+        "type": "boolean"
+      },
+      "description": {
+        "type": "text"
+      },
+      "rating": {
+        "type": "double"
+      }
+    }
+  }
+}
+
+GET /recipes
+
+POST _sql?format=txt
+{
+  "query": """
+  SELECT "name", "is_halal", "is_vegetarian", "description", "rating" FROM "recipes"
+  """
+}
+
+GET /recipes/_search
+{
+  "from": 0,
+  "size": 4, 
+  "sort": [
+    {
+      "rating": {
+        "order": "desc"
+      }
+    }
+  ], 
+  "query": {
+    "function_score": {
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "match": {
+                "name": {
+                  "query": "fried"
+                }
+              }
+            }
+          ],
+          "filter": [
+            {
+              "terms": {
+                "ingredients": [
+                  "egg",
+                  "rice"
+                ]
+              }
+            },
+            {
+              "exists": {
+                "field": "is_halal"
+              }
+            },
+            {
+              "exists": {
+                "field": "is_vegetarian"
+              }
+            }
+          ]
+        }
+      },
+      "functions": [
+        {
+          "filter": {
+            "range": {
+              "rating": {
+                "gt": 4
+              }
+            }
+          },
+          "weight": 10
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "ingredients": {
+      "terms": {
+        "field": "ingredients.keyword"
+      }
+    }
+  }
+}
+
+GET /recipes/_search
+{
+    "query": {
+        "function_score": {
+            "query": {
+                "match": {
+                    "name": {
+                        "query": "ridr",
+                        "fuzziness": "2"
+                    }
+                }
+            },
+            "functions": [
+                {
+                    "filter": {
+                        "term": {
+                            "is_vegetarian": true
+                        }
+                    },
+                    "weight": 2
+                },
+                {
+                    "filter": {
+                        "term": {
+                            "is_halal": true
+                        }
+                    },
+                    "weight": 2
+                }
+            ]
+        }
+    }
+}
+
+GET /recipes/_search
+{
+  
+}

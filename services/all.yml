@@ -1,0 +1,48 @@
+version: '3'
+services:
+    elastic:
+        image: elasticsearch:7.12.0
+        ports:
+            - "9000:9000"
+            - "9200:9200"
+            - "9300:9300"
+        environment: 
+            - "discovery.type=single-node"
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.12.1
+        environment:
+            SERVER_NAME: localhost
+            ELASTICSEARCH_HOSTS: "http://elastic:9200"
+        depends_on:
+            - elastic
+        ports:
+            - "5601:5601"
+    nsqd:
+        image: nsqio/nsq:latest
+        command: ["./nsqd"]
+        ports: 
+            - "4150:4150"
+            - "4151:4151"
+    nsqadmin:
+        image: nsqio/nsq:latest
+        command: ["./nsqadmin", "-nsqd-http-address", "nsqd:4151"]
+        ports: 
+            - "4171:4171"
+    postgres:
+        image: postgres
+        volumes:
+          - ./fixtures/recipes.sql:/docker-entrypoint-initdb.d/recipes.sql
+        ports: 
+            - "5432:5432"
+        environment:
+            - "POSTGRES_HOST_AUTH_METHOD=trust"
+    pgadmin:
+        image: dpage/pgadmin4
+        restart: always
+        environment:
+            PGADMIN_DEFAULT_EMAIL: admin@admin.com
+            PGADMIN_DEFAULT_PASSWORD: root
+        ports:
+        - "5050:80"
+        depends_on:
+            - postgres
