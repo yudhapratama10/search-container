@@ -67,6 +67,8 @@ func consumer() {
 
 		// Construct an HTTP request using the struct data
 		var req *http.Request
+
+		// Process message based on the client action
 		if message.Action == "insert" || message.Action == "update" {
 
 			// Get detailed data from SQL/database
@@ -79,18 +81,18 @@ func consumer() {
 				return nil
 			}
 			if err := dbConn.QueryRowContext(context.Background(), `
-		SELECT
-			name,
-			ingredients,
-			isHalal,
-			isVegetarian,
-			description,
-			rating
-		FROM
-			recipes
-		WHERE
-			id = $1
-		`, message.ID).Scan(
+			SELECT
+				name,
+				ingredients,
+				isHalal,
+				isVegetarian,
+				description,
+				rating
+			FROM
+				recipes
+			WHERE
+				id = $1
+			`, message.ID).Scan(
 				&recipe.Name,
 				pq.Array(&recipe.Ingredients),
 				&recipe.IsHalal,
