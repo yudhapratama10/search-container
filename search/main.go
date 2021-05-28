@@ -29,7 +29,6 @@ func main() {
 	http.HandleFunc("/search", searchHandler)
 
 	http.ListenAndServe(":2222", nil)
-
 }
 
 func renderIndexPage(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +72,12 @@ func (s searchRequest) filterQuery() []map[string]interface{} {
 	// create the filter query variable
 	filter := make([]map[string]interface{}, 0)
 
+	// check if there is ingredients filter or no
+
+	// check if there is halal filter or no
+
+	// check if there is vegetarian filter or no
+
 	// if there is no filter, just return nil
 	if len(filter) == 0 {
 		return nil
@@ -82,6 +87,15 @@ func (s searchRequest) filterQuery() []map[string]interface{} {
 }
 
 func (s searchRequest) search() searchResponse {
+
+	// create the query
+
+	// do http call to elasticsearch
+
+	// check if there is error or no
+
+	// process the data
+
 	return searchResponse{}
 }
 
